@@ -15,18 +15,24 @@ import { InputGroupButton } from "@/components/ui/input-group";
 import { useNavigate } from "react-router-dom";
 import { useTitle } from "@/hooks/useTitle";
 
-const Categories = ["rewrite", "expand", "shorten", "article"];
+const Categories = [
+  "rewrite",
+  "expand",
+  "shorten",
+  "article",
+  "summary",
+] as const;
 type CategoryType = (typeof Categories)[number];
 const Rewrite: React.FC = () => {
   const navigate = useNavigate();
   const textInputRef = useRef<HTMLTextAreaElement>(null);
   const [category, setCategory] = useState<CategoryType>("rewrite");
-  const {user, setUser} = useAuthContext();
+  const { user, setUser } = useAuthContext();
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState("");
 
-  useTitle("Thinkora | Rewrite")
+  useTitle("Thinkora | Rewrite");
   async function generateContent() {
     const value = textInputRef.current?.value.trim();
     if (!value) return;
@@ -57,11 +63,12 @@ const Rewrite: React.FC = () => {
   }
 
   return (
-    <div className="relative overflow-y-hidden">
-      <h1 className="absolute indent-10 top-0 text-3xl font-bold bg-linear-45 from-teal-50 to-pink-50  ">
-        Rewrite
-      </h1>
-      <div className="flex flex-col gap-4 justify-center max-w-4xl mx-auto w-full px-10 h-screen">
+    <div className="relative overflow-y-hidden h-screen">
+      <div className="absolute left-1/2 -translate-x-1/2 top-1/4 text-3xl font-bold bg-linear-45 from-teal-50 to-pink-50 text-gray-800">
+        <span className="capitalize">{category}</span> Your <br />{" "}
+        <span className="text-sky-500">Content</span> by ❤️
+      </div>
+      <div className="flex flex-col gap-4 justify-center max-w-4xl mx-auto w-full px-10 h-[90vh]">
         <div
           style={{ scrollbarWidth: "none" }}
           className="max-h-[70vh] min-h-[20vh] overflow-y-auto px-4 message-container flex flex-col gap-4 py-4"

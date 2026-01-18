@@ -2,23 +2,24 @@ import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { SlArrowLeft, SlArrowRight } from "react-icons/sl";
 import { TbFileTextSpark, TbHome } from "react-icons/tb";
-import { RiImageAiLine } from "react-icons/ri";
+import { RiChatNewLine, RiImageAiLine } from "react-icons/ri";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { apiFetch } from "@/util/apiFetch";
 import { useAuthContext } from "@/context/AuthProvider";
-import { CgSpinner } from "react-icons/cg";
-import { userSidebarContext } from "@/context/SidebarProvider";
+import { useSidebarContext } from "@/context/SidebarProvider";
 import { MdDelete } from "react-icons/md";
 import { toast } from "react-toastify";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
 import { Button } from "../ui/button";
+import { FadeLoader } from "react-spinners";
+import useThrottle from "@/hooks/useThrottle";
+import CloseBtn from "../button/CloseBtn";
+import { markdownToText } from "@/util";
 
 interface SidebarProps {
   className?: string;
@@ -31,63 +32,77 @@ type ChatSession = {
 };
 const isRewrite = (pathname: string) =>
   /^\/(rewrite|rewrite\/w+)/.test(pathname);
+
+const NavItems = [
+  {
+    name: "homepage",
+    link: "/",
+    Icon: TbHome,
+  },
+  {
+    name: "rewrite",
+    link: "/rewrite",
+    Icon: TbFileTextSpark,
+  },
+  {
+    name: "image",
+    link: "/image/generate",
+    Icon: RiImageAiLine,
+  },
+];
 const Sidebar: React.FC<SidebarProps> = ({ className, style }) => {
   const { user, setUser, logout } = useAuthContext();
-  const { expandSidebar, setExpandSidebar } = userSidebarContext();
+  const { expandSidebar, setExpandSidebar, isOpenSmallView, toggleSidebar } =
+    useSidebarContext();
   const navigate = useNavigate();
-  const NavItems = [
-    {
-      name: "homepage",
-      link: "/",
-      Icon: TbHome,
-    },
-    {
-      name: "rewrite",
-      link: "/rewrite",
-      Icon: TbFileTextSpark,
-    },
-    {
-      name: "image",
-      link: "/image/generate",
-      Icon: RiImageAiLine,
-    },
-  ];
 
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [isLoadingChatSession, setIsLoadingChatSession] = useState(false);
   const [page, setPage] = useState(1);
   const { pathname } = useLocation();
 
-  useEffect(() => {
-    async function fetchChatSession() {
-      setIsLoadingChatSession(true);
-      try {
-        const res = await apiFetch({
-          url: `/v1/content/chat-sessions/?page=${page}&limit={10}`,
-          options: {
-            headers: {
-              authorization: `Bearer ${user?.token}`,
-            },
+  async function fetchChatSession() {
+    setIsLoadingChatSession(true);
+    try {
+      const res = await apiFetch({
+        url: `/v1/content/chat-sessions/?page=${page}&limit=10`,
+        options: {
+          headers: {
+            authorization: `Bearer ${user?.token}`,
           },
-          setState: setUser,
-        });
+        },
+        setState: setUser,
+      });
 
-        if (!res.ok) return;
-        const { chatSessions } = await res.json();
-        if (!chatSessions || !Array.isArray(chatSessions)) return;
-        setChatSessions((prev) =>
-          page === 1 ? chatSessions : [...prev, ...chatSessions]
-        );
-      } catch (error) {
-        console.log(`Error in fetching chat session, error is ${error}`);
-      } finally {
-        setIsLoadingChatSession(false);
-      }
+      if (!res.ok) return;
+      const { chatSessions } = await res.json();
+      if (!chatSessions || !Array.isArray(chatSessions)) return;
+      setChatSessions((prev) =>
+        page === 1 ? chatSessions : [...prev, ...chatSessions],
+      );
+    } catch (error) {
+      console.log(`Error in fetching chat session, error is ${error}`);
+    } finally {
+      setIsLoadingChatSession(false);
     }
-    if (isRewrite(pathname)) {
+  }
+  useEffect(() => {
+    if (isRewrite(pathname) && !chatSessions.length) {
       fetchChatSession();
     }
-  }, [pathname, page]);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (page > 1) {
+      fetchChatSession();
+    }
+  }, [page]);
+
+  const throttleScroll = useThrottle((el) => {
+    if (el.clientHeight + el.clientTop >= el.scrollHeight - 50) {
+      setPage((prev) => prev + 1);
+    }
+  });
 
   async function handleDeleteChatSession(id: string) {
     try {
@@ -106,6 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, style }) => {
         return;
       }
       toast.success("Deletion successful");
+      setChatSessions((prev) => prev.filter((item) => item._id !== id));
       navigate("/rewrite");
     } catch (error) {
       toast.error(`Error on deleting chat session`);
@@ -113,24 +129,30 @@ const Sidebar: React.FC<SidebarProps> = ({ className, style }) => {
   }
   return (
     <aside
-      style={style}
+      style={{ ...style }}
       className={cn(
-        "flex flex-col bg-white border-r h-full shadow-sm not-[seperator]:*:px-4 py-4 transition-all border-2 border-white z-10 bg-linear-to-b from-sky-100 to-pink-50",
+        "max-sm:fixed max-sm:max-w-64",
+        isOpenSmallView && "left-0",
+        !isOpenSmallView && "-left-64",
+        "w-full flex flex-col bg-white border-r h-full shadow-sm not-[seperator]:*:px-4 py-4 transition-all border-2 border-white z-30 bg-linear-to-b from-sky-100 to-pink-50",
         expandSidebar ? "min-w-64 max-w-64" : "min-w-20 max-w-20",
-        className
+        className,
       )}
     >
       {/* logo */}
-      <div className="relative py-2 mb-10">
+      <div className="relative py-2 mb-10 flex items-center justify-between">
         <div className="text-xl font-semibold ">
           <Link to="/" className="flex items-center gap-2">
             <img src="/app1.png" className="w-12" />
             {expandSidebar && <p>Thinkora</p>}
           </Link>
         </div>
+
+        <CloseBtn onClick={toggleSidebar} className="sm:hidden" />
+
         <button
           onClick={() => setExpandSidebar((prev) => !prev)}
-          className="absolute press top-4 -right-3.5 border border-gray-300 bg-white p-2 rounded-full "
+          className="max-sm:hidden absolute press top-4 -right-3.5 border border-gray-300 bg-white p-2 rounded-full"
         >
           {expandSidebar ? (
             <SlArrowLeft size={10} />
@@ -139,12 +161,15 @@ const Sidebar: React.FC<SidebarProps> = ({ className, style }) => {
           )}
         </button>
       </div>
-      <div className="space-y-8">
+      <div
+        onScroll={(e) => throttleScroll(e.currentTarget)}
+        className="not:[button]:space-y-8 flex-1 overflow-y-auto pb-10 app-scroll"
+      >
         {/* section */}
         <section
           className={cn(
             "flex flex-col space-y-6",
-            !expandSidebar && "items-center"
+            !expandSidebar && "items-center",
           )}
         >
           <p className={cn("font-semibold")}>General</p>
@@ -157,7 +182,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, style }) => {
                   cn(
                     "flex items-center gap-2 px-2.5 py-2 rounded-full",
                     expandSidebar && "py-2 px-3",
-                    isActive && "gradient-primary"
+                    isActive && "gradient-primary",
                   )
                 }
               >
@@ -165,44 +190,54 @@ const Sidebar: React.FC<SidebarProps> = ({ className, style }) => {
                 {expandSidebar && <p>{name}</p>}
               </NavLink>
             ))}
+            
           </div>
         </section>
         {/* chat - section */}
-        {expandSidebar && (
-          <section
+        {isRewrite(pathname) && (
+          <button
+            onClick={() => navigate("/rewrite")}
             className={cn(
-              "flex flex-col space-y-6 overflow-y-auto",
-              !expandSidebar && "items-center"
+              "press mt-6 mb-4 hover:border-b-2 border-sky-400 flex items-center gap-2 px-2.5 py-2",
+              !expandSidebar && "hover:border-none",
             )}
           >
-            {isRewrite(pathname) && (
-              <p className={cn("font-semibold")}>Your Chat</p>
+            {!expandSidebar && (
+              <RiChatNewLine size={24} className="text-gray-700" />
             )}
+            {expandSidebar && "New Chat"}
+          </button>
+        )}
+        {/* chat session list */}
+        {expandSidebar && isRewrite(pathname) && (
+          <section
+            className={cn(
+              "flex flex-col gap-6",
+              !expandSidebar && "items-center",
+            )}
+          >
+            <p className={cn("font-semibold")}>Your Chat</p>
+
             {expandSidebar && (
               <div
                 style={{ scrollbarWidth: "none" }}
-                className="text-sm space-y-3  overflow-y-auto"
+                className="text-sm space-y-3 "
               >
-                {isRewrite("rewrite") && (
-                  <button
-                    onClick={() => navigate("/rewrite")}
-                    className="press hover:border-b-2 border-sky-400"
-                  >
-                    New Chat
-                  </button>
-                )}
                 {chatSessions.map(({ _id, title }) => (
                   <div
                     className={cn(
                       "cursor-pointer flex items-center justify-between gap-4 w-full bg-sky-950 px-2 py-2 truncate rounded-xl text-white",
-                      _id === pathname.split("/").at(-1) && "bg-black"
+                      _id === pathname.split("/").at(-1) && "bg-black",
                     )}
                     onClick={() => navigate(`/rewrite/${_id}`)}
                     key={_id}
                   >
-                    <p className="max-w-[80%] truncate">{title}</p>
+                    <p className="max-w-[80%] truncate">
+                      {markdownToText(title)}
+                    </p>
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         handleDeleteChatSession(_id);
                       }}
                       className="press hover:bg-sky-100 p-1 rounded-full"
@@ -211,20 +246,13 @@ const Sidebar: React.FC<SidebarProps> = ({ className, style }) => {
                     </button>
                   </div>
                 ))}
-              </div>
-            )}
 
-            {isRewrite(pathname) && (
-              <div>
-                <button
-                  onClick={() => setPage((prev) => prev + 1)}
-                  className="mb-5 hover:scale-105 flex items-center gap-1 gradient-primary text-white mx-auto px-2 py-1 rounded-full text-xs press"
-                >
-                  {isLoadingChatSession && (
-                    <CgSpinner className="animate-spin" />
-                  )}{" "}
-                  load more
-                </button>
+                <FadeLoader
+                  loading={isLoadingChatSession}
+                  radius={80}
+                  color="#38BDF8"
+                  className="mx-auto scale-75"
+                />
               </div>
             )}
           </section>
@@ -234,15 +262,13 @@ const Sidebar: React.FC<SidebarProps> = ({ className, style }) => {
       <div
         className={cn(
           "mt-auto flex items-center gap-2",
-          !expandSidebar && " justify-center"
+          !expandSidebar && " justify-center",
         )}
       >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="">
-              <button className="bg-sky-500 w-8 h-8 mt-1 aspect-square text-md rounded-full uppercase font-bold text-white">
-                {user?.username[0]}
-              </button>
+            <Button className="bg-sky-500 w-8 h-8 mt-1 aspect-square text-md rounded-full uppercase font-bold text-white">
+              {user?.username[0]}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent

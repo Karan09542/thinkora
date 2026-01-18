@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FaCircleArrowRight } from "react-icons/fa6";
 import { CgArrowTopRight, CgSpinner } from "react-icons/cg";
-import { ImLoop2 } from "react-icons/im";
+import { GoHistory } from "react-icons/go";
 
 import {
   Select,
@@ -19,6 +19,11 @@ import { TextShimmer } from "@/motion-primitives/text-shimmer";
 import { MdDelete } from "react-icons/md";
 import { toast } from "react-toastify";
 import { useTitle } from "@/hooks/useTitle";
+import { useSidebarContext } from "@/context/SidebarProvider";
+import CloseBtn from "@/components/button/CloseBtn";
+import { RiBarChartHorizontalLine } from "react-icons/ri";
+import { FcDownload } from "react-icons/fc";
+import { downloadImage } from "@/util";
 
 const Image_Resolution = [
   {
@@ -46,7 +51,7 @@ const Tiles: React.FC<{
     onClick={onClick}
     className={cn(
       "relative cursor-pointer transition-all duration-200 bg-gray-100 font-extralight py-2 px-3 rounded-xl",
-      active && "bg-gray-800 text-white"
+      active && "bg-gray-800 text-white",
     )}
   >
     <div className="flex items-start gap-1">
@@ -61,7 +66,7 @@ const Tiles: React.FC<{
       onClick={onDelete}
       className={cn(
         "absolute press -right-1.5 -top-1.5 bg-gray-200 border-3 text-gray-800 border-white press  p-1 rounded-full",
-        active && "bg-gray-800 text-white"
+        active && "bg-gray-800 text-white",
       )}
     >
       <MdDelete />
@@ -77,6 +82,7 @@ type History = {
 
 const ImageGenerate: React.FC = () => {
   const { user, setUser } = useAuthContext();
+  const { isSmallView, toggleSidebar } = useSidebarContext();
   const [resolution, setResolution] = useState("1024x1024");
   const [text, setText] = useState("");
 
@@ -89,6 +95,8 @@ const ImageGenerate: React.FC = () => {
   const [page, setPage] = useState(1);
   const [history, setHistory] = useState<History[]>([]);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const [openRightPanel, setOpenRightPanel] = useState(false);
 
   useTitle("Thinkora | Image");
   async function fetchingImage(id: string) {
@@ -198,42 +206,135 @@ const ImageGenerate: React.FC = () => {
       setIsSubmiting(false);
     }
   };
+  const ZoomComponent: React.FC<{ url: string }> = ({ url }) => {
+    const id = crypto.randomUUID();
+    const [isZoomed, setIsZoomed] = useState(false);
+    return (
+      <>
+        {isZoomed && (
+          <div
+            onClick={() => setIsZoomed(false)}
+            className="fixed grid h-full top-0 left-0 right-0 bg-black/60 backdrop-blur-xs z-50"
+          >
+            <style>
+              {`
+                @starting-style {
+                    #${id} {
+                      opacity:0;
+                    }
+                }
+
+              `}
+            </style>
+            <img
+              id={id}
+              style={{
+                position: "relative",
+                anchorName: `--image-${id + 1}`,
+              }}
+              className={cn(
+                "m-auto rounded-xl transition-all duration-300 ease-in-out h-[80vh]",
+              )}
+              src={url}
+              onContextMenu={(e) => e.preventDefault()}
+            />
+            <button
+              onClick={() => downloadImage(url)}
+              style={{
+                positionAnchor: `--image-${id + 1}`,
+                position: "absolute",
+                right: "calc(anchor(right) + 10px)",
+                top: "calc(anchor(top) + 20px)",
+              }}
+              className="press [&_g]:fill-white bg-pink-500  p-1.5 rounded-full"
+            >
+              <FcDownload size={21} />
+            </button>
+          </div>
+        )}
+        <img
+          style={{
+            position: isZoomed ? "fixed" : "relative",
+            anchorName: `--image-${id}`,
+          }}
+          className={"h-full object-contain"}
+          src={url}
+          onContextMenu={(e) => e.preventDefault()}
+          onClick={() => setIsZoomed(true)}
+        />
+        <button
+          onClick={() => downloadImage(url)}
+          style={{
+            positionAnchor: `--image-${id}`,
+            position: "absolute",
+            right: "calc(anchor(right) + 10px)",
+            top: "calc(anchor(top) + 20px)",
+          }}
+          className="press [&_g]:fill-white bg-pink-500 p-1.5 rounded-full"
+        >
+          <FcDownload size={21} />
+        </button>
+      </>
+    );
+  };
   return (
     <div className="bg-linear-45 from-teal-50 to-pink-50">
       <section className="flex gap-2 h-screen">
         <Sidebar />
-        <main className="flex-1 bg-white flex flex-col gap-0 min-h-0 shadow-xl m-5 rounded-xl px-5 py-2">
+        <main
+          className={cn(
+            "flex-1 bg-white flex flex-col gap-0 min-h-0 shadow-xl m-5 rounded-xl",
+            !isSmallView && "px-5 py-2",
+            isSmallView && "m-0 rounded-none *:not-[nav]:px-5 *:not-[nav]:py-2",
+          )}
+        >
+          {isSmallView && (
+            <div className="backdrop-blur-2xl border-b-6 border-pink-300/30 px-2 py-5  w-full top-0 z-20 flex items-center justify-between shadow-2xl shadow-pink-500/10">
+              <RiBarChartHorizontalLine
+                onClick={toggleSidebar}
+                className="press"
+                size={24}
+              />
+              <button
+                onClick={() => setOpenRightPanel((prev) => !prev)}
+                className="press flex items-center gap-1 text-sm bg-pink-500 px-2 py-1 rounded-full font-medium text-white"
+              >
+                <GoHistory />
+                <p>History</p>
+              </button>
+            </div>
+          )}
+
           {/* head */}
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl text-black font-bold font-serif">
-              Image Generator
-            </h1>{" "}
-            <Link
-              to="/image/history"
-              className="font-semibold press text-sky-500 flex border-b-sky-500 hover:border-b-2"
-            >
-              History <CgArrowTopRight />
-            </Link>
+            {!isSmallView && (
+              <Link
+                to="/image/history"
+                className="font-semibold press text-sky-500 flex border-b-sky-500 hover:border-b-2"
+              >
+                History <CgArrowTopRight />
+              </Link>
+            )}
           </div>
           {/* middle */}
-          <div className="bg-white shadow-xl p-4 rounded-xl flex-1 flex flex-col min-h-0 gap-y-2">
+          <div
+            className={cn(
+              " bg-white shadow-xl p-4 rounded-xl flex-1 flex flex-col min-h-0 gap-y-2",
+              isSmallView && "mx-4",
+            )}
+          >
             {/* generated images */}
             <div
               style={{ scrollbarWidth: "none" }}
               className={cn(
-                "flex-1 bg-black/10 bg-linear-45 from-sky-100 to-pink-50 flex items-center px-3 gap-3 min-h-0 overflow-auto rounded-xl [&>img]:rounded-xl text-3xl text-gray-400 py-4",
-                urls.length <= 1 && "justify-center"
+                "flex-1 bg-black/10 bg-linear-45 from-sky-100 to-pink-50 flex items-center [&>img]:rounded-xl px-3 gap-3 min-h-0 overflow-y-auto relative rounded-xl text-3xl text-gray-400 py-4 transition-all",
+                urls.length <= 1 && "justify-center",
               )}
             >
               {urls.length > 0 &&
                 !isSubmiting &&
                 urls.map((url, i) => (
-                  <img
-                    key={`image-${i}`}
-                    className="h-full object-contain"
-                    src={url}
-                    onContextMenu={(e) => e.preventDefault()}
-                  />
+                  <ZoomComponent url={url} key={`image-${i}`} />
                 ))}
               {urls.length === 0 && !isSubmiting && <p>Generate Image</p>}
               {isSubmiting && (
@@ -282,15 +383,15 @@ const ImageGenerate: React.FC = () => {
                       setImageRange(Number(e.currentTarget.value))
                     }
                   />
-                  <p className="image-range-label bg-blue-500 text-white px-3 py-1 rounded-xl border">
+                  <p className="image-range-label bg-blue-400 text-white px-3 py-1 rounded-xl border">
                     {imageRange}
                   </p>
                 </div>
               </div>
-              <button className="press flex items-center justify-between gap-2 mb-4 text-sky-500 text-sm font-semibold mt-3">
+              {/* <button className="press flex items-center justify-between gap-2 mb-4 text-sky-500 text-sm font-semibold mt-3">
                 <ImLoop2 />
                 <p>Regenerate response</p>
-              </button>
+              </button> */}
             </div>
             {/* input box */}
             <div className="relative">
@@ -299,11 +400,15 @@ const ImageGenerate: React.FC = () => {
                 onChange={(e) => setText(e.target.value)}
                 style={{ scrollbarWidth: "none" }}
                 placeholder="generate Image"
-                className="w-full bg-gray-200 rounded-4xl text-black placeholder:text-black/60 py-3.5 px-4 pr-12 h-14 min-h-14 outline-none focus:ring-sky-500"
+                className={cn(
+                  "w-full bg-gray-200 rounded-4xl text-black placeholder:text-black/60 py-3.5 px-4 pr-12 h-14 min-h-14 outline-none focus:ring-sky-500 transition-all",
+                  isSmallView && "h-20 focus:h-28",
+                )}
+                rows={40}
               />
               <button
                 onClick={onSubmit}
-                className="press absolute bg-white right-3 top-1/2 -translate-y-1/2 border-3 px-2.5 py-2 border-sky-500 rounded-full gradient-primary"
+                className="press absolute bg-white right-3 bottom-3 border-3 px-2.5 py-2 border-sky-500 rounded-full gradient-primary"
               >
                 <FaCircleArrowRight />
               </button>
@@ -313,11 +418,31 @@ const ImageGenerate: React.FC = () => {
         {/* right */}
         <div
           style={{ scrollbarWidth: "none" }}
-          className="bg-white rounded-xl shadow-md *:px-4 w-full max-w-80 m-5 overflow-y-auto"
+          className={cn(
+            "bg-white rounded-xl shadow-md *:px-4 w-full max-w-80 m-5 overflow-y-auto transition-all",
+            isSmallView && "fixed h-[90vh] z-20",
+            openRightPanel ? "right-0" : "-right-100",
+          )}
         >
-          <p className="text-xl sticky top-0 z-10 w-full bg-white py-2">
-            Content History
-          </p>
+          <div className="flex items-center justify-between text-xl sticky top-0 z-10 w-full bg-white py-2">
+            <p className="flex gap-1 items-center">
+              Content
+              {isSmallView && (
+                <Link
+                  to="/image/history"
+                  className="font-semibold press text-sky-500 flex"
+                >
+                  History <CgArrowTopRight />
+                </Link>
+              )}
+            </p>
+            {isSmallView && (
+              <CloseBtn
+                onClick={() => setOpenRightPanel(false)}
+                className="bg-gray-800 text-white"
+              />
+            )}
+          </div>
 
           <div className="flex flex-col gap-2 h-full">
             <div className="space-y-3 mt-3 mb-auto">
@@ -334,6 +459,9 @@ const ImageGenerate: React.FC = () => {
                         setActiveIndex(null);
                       } else {
                         setActiveIndex(i);
+                      }
+                      if (isSmallView) {
+                        setOpenRightPanel(false);
                       }
                     }}
                     onDelete={() => handleDeleteImage(item._id)}

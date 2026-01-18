@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         "/v1": env.VITE_API_URL || "http://localhost:3000",
       },
+      allowedHosts: ["collapse-courier-bytes-designs.trycloudflare.com"]
     },
     resolve: {
       alias: {

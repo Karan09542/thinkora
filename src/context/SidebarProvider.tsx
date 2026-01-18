@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface SidebarProps {
   children: React.ReactNode;
@@ -6,20 +6,51 @@ interface SidebarProps {
 type SidebarContextType = {
   expandSidebar: boolean;
   setExpandSidebar: React.Dispatch<React.SetStateAction<boolean>>;
+  isSmallView: boolean;
+  isOpenSmallView: boolean;
+  toggleSidebar: () => void;
 };
 const SidebarContext = createContext<SidebarContextType | null>(null);
-export const userSidebarContext = () => {
-    const context = useContext(SidebarContext);
-    if(!context){
-        throw new Error("useSidebarContext must be used inside SidebarProvider")
-    }
-    return context;
+export const useSidebarContext = () => {
+  const context = useContext(SidebarContext);
+  if (!context) {
+    throw new Error("useSidebarContext must be used inside SidebarProvider");
+  }
+  return context;
 };
 const SidebarProvider: React.FC<SidebarProps> = ({ children }) => {
   const [expandSidebar, setExpandSidebar] = useState(false);
+  const [isSmallView, setIsSmallView] = useState(false);
+  const [isOpenSmallView, setIsOpenSmallView] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsOpenSmallView((prev) => !prev);
+  };
+
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth < 640) {
+        setExpandSidebar(true);
+        setIsSmallView(true);
+      } else {
+        setIsSmallView(false);
+      }
+    }
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => window.addEventListener("resize", handleResize);
+  }, []);
 
   return (
-    <SidebarContext value={{ expandSidebar, setExpandSidebar }}>
+    <SidebarContext
+      value={{
+        expandSidebar,
+        setExpandSidebar,
+        isSmallView,
+        isOpenSmallView,
+        toggleSidebar,
+      }}
+    >
       {children}
     </SidebarContext>
   );

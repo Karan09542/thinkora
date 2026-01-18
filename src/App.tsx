@@ -49,26 +49,29 @@ function App() {
                 }
               />
             </Route>
-            <Route
-              path="/rewrite"
-              element={
-                <Auth>
-                  <Layout isFooter={false}>
-                    <Rewrite />
-                  </Layout>
-                </Auth>
-              }
-            ></Route>
-            <Route
-              path="/rewrite/:chatSessionId"
-              element={
-                <Auth>
-                  <Layout isFooter={false}>
-                    <RewriteSession />
-                  </Layout>
-                </Auth>
-              }
-            />
+
+            <Route path="/rewrite">
+              <Route
+                index
+                element={
+                  <Auth>
+                    <Layout isFooter={false}>
+                      <Rewrite />
+                    </Layout>
+                  </Auth>
+                }
+              />
+              <Route
+                path=":chatSessionId"
+                element={
+                  <Auth>
+                    <Layout isFooter={false}>
+                      <RewriteSession />
+                    </Layout>
+                  </Auth>
+                }
+              />
+            </Route>
           </Routes>
         </SidebarProvider>
       </AuthProvider>

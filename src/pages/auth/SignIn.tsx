@@ -46,10 +46,12 @@ const SignIn: React.FC = () => {
     <div className="flex items-center justify-center h-screen bg-[url('/bg.png')] bg-cover">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col gap-4 w-full max-w-sm border-3 border-white/20 rounded-xl px-10 pb-8 pt-4 backdrop-blur-xl "
+        className=" max-sm:w-[90%] flex flex-col gap-4 w-full max-w-sm border-3 border-white/20 rounded-xl px-10 pb-8 pt-4 backdrop-blur-xl "
       >
         <div className="flex flex-col items-center pointer-events-none select-none">
-          {/* <img src="/app.png" className="size-20" /> */}
+          <p className="text-4xl font-bold first-letter:text-5xl  bg-clip-text text-transparent bg-linear-to-l from-purple-500 to-sky-400 mb-1">
+            Thinkora
+          </p>
           <h1 className="text-3xl text-white mb-4">Sign In</h1>
         </div>
         <TextInput

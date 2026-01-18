@@ -1,20 +1,17 @@
+import { useSidebarContext } from "@/context/SidebarProvider";
 import { useTitle } from "@/hooks/useTitle";
-import React, { useEffect } from "react";
+import { cn } from "@/lib/utils";
+import React from "react";
 import { MdOutlineEditNote, MdOutlineImage } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 const Home: React.FC = () => {
+  const { isSmallView } = useSidebarContext();
   useTitle("Thinkora");
-  // useEffect(() => {
-  //   document.body.style.overflowY = "hidden";
-  //   return () => {
-  //     document.body.style.overflowY = "none";
-  //   };
-  // }, []);
   const navigate = useNavigate();
   return (
-    <div className="flex flex-col items-center justify-center h-screen px-6">
+    <div className="flex flex-col items-center justify-center h-screen px-6  max-sm:mb-20">
       {/* Hero */}
-      <h1 className="text-4xl md:text-5xl font-semibold text-gray-800 mb-4">
+      <h1 className={cn("text-4xl md:text-5xl font-semibold text-gray-800 mb-4", isSmallView && "pt-30 text-center")}>
         Generate Content with <span className="text-sky-500">Thinkora</span>
       </h1>
 
