@@ -2,7 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import { UserFormSchema } from "../../util";
+import { baseURL, UserFormSchema } from "../../util";
 import TextInput from "@/components/inputs/TextInput";
 import type z from "zod";
 import { toast } from "react-toastify";
@@ -21,7 +21,7 @@ const SignIn: React.FC = () => {
   });
 
   const onSubmit = async (data: z.infer<typeof UserSignInSchema>) => {
-    const res = await fetch("/v1/auth/sign-in", {
+    const res = await fetch(`${baseURL}/v1/auth/sign-in`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

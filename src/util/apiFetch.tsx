@@ -1,3 +1,4 @@
+import { baseURL } from "./fnUtils";
 import { UserSchema } from "./schema";
 import type z from "zod";
 type UseFetch = {
@@ -19,10 +20,12 @@ export const apiFetch = async ({
     },
   };
 
-  let res = await fetch(input, options);
+  const url = new URL(`${baseURL}${input}`);
+
+  let res = await fetch(url, options);
   if (res.status !== 401) return res;
 
-  const refresh = await fetch("/v1/auth/refresh-token", {
+  const refresh = await fetch(`${baseURL}/v1/auth/refresh-token`, {
     method: "POST",
     credentials: "include",
   });
@@ -39,7 +42,7 @@ export const apiFetch = async ({
 
   setState(data.user);
 
-  res = await fetch(input, {
+  res = await fetch(url, {
     method: "POST",
     ...init,
     headers: {

@@ -17,7 +17,8 @@ const SignUp: React.FC = () => {
     resolver: zodResolver(UserFormSchema),
   });
   const onSubmit = async (data: z.infer<typeof UserFormSchema>) => {
-    const res = await fetch("/v1/auth/sign-up", {
+    const baseURL = import.meta.env.VITE_API_URL;
+    const res = await fetch(`${baseURL}/v1/auth/sign-up`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

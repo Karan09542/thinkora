@@ -9,10 +9,10 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), tailwindcss()],
     server: {
-      proxy: {
-        "/v1": env.VITE_API_URL || "http://localhost:3000",
-      },
-      allowedHosts: ["collapse-courier-bytes-designs.trycloudflare.com"]
+      // proxy: {
+      //   "/v1": env.VITE_API_URL || "http://localhost:3000",
+      // },
+      // allowedHosts: ["collapse-courier-bytes-designs.trycloudflare.com"]
     },
     resolve: {
       alias: {
