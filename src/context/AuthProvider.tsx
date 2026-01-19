@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { UserSchema } from "@/util";
+import { baseURL, UserSchema } from "@/util";
 import type z from "zod";
 import { toast, ToastContainer } from "react-toastify";
 import { apiFetch } from "@/util/apiFetch";
@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<AuthProps> = ({ children }) => {
     let mounted = true;
     async function silentLogin() {
       try {
-        const res = await fetch("/v1/auth/refresh-token", {
+        const res = await fetch(`${baseURL}/v1/auth/refresh-token`, {
           method: "POST",
           credentials: "include",
         });

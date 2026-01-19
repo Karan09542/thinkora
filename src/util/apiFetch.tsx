@@ -20,7 +20,7 @@ export const apiFetch = async ({
     },
   };
 
-  const url = new URL(`${baseURL}${input}`);
+  const url = `${baseURL}${input}`;
 
   let res = await fetch(url, options);
   if (res.status !== 401) return res;
