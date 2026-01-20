@@ -81,7 +81,9 @@ export const AuthProvider: React.FC<AuthProps> = ({ children }) => {
           <div className="text-center -mt-40">
             Welcome to <p className="text-sky-500">Thinkora</p>
           </div>
-          <p className="text-xl font-light tracking-wider">Platform of AI Content Generation</p>
+          <p className="text-xl font-light tracking-wider">
+            Platform of AI Content Generation
+          </p>
           <BarLoader width={200} />
         </div>
       </div>

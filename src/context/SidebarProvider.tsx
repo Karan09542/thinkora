@@ -8,6 +8,7 @@ type SidebarContextType = {
   setExpandSidebar: React.Dispatch<React.SetStateAction<boolean>>;
   isSmallView: boolean;
   isOpenSmallView: boolean;
+  setIsOpenSmallView: React.Dispatch<React.SetStateAction<boolean>>;
   toggleSidebar: () => void;
 };
 const SidebarContext = createContext<SidebarContextType | null>(null);
@@ -48,6 +49,7 @@ const SidebarProvider: React.FC<SidebarProps> = ({ children }) => {
         setExpandSidebar,
         isSmallView,
         isOpenSmallView,
+        setIsOpenSmallView,
         toggleSidebar,
       }}
     >

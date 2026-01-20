@@ -20,6 +20,7 @@ import { FadeLoader } from "react-spinners";
 import useThrottle from "@/hooks/useThrottle";
 import CloseBtn from "../button/CloseBtn";
 import { markdownToText } from "@/util";
+import useOutsideClose from "@/hooks/useOutsideClose";
 
 interface SidebarProps {
   className?: string;
@@ -52,8 +53,9 @@ const NavItems = [
 ];
 const Sidebar: React.FC<SidebarProps> = ({ className, style }) => {
   const { user, setUser, logout } = useAuthContext();
-  const { expandSidebar, setExpandSidebar, isOpenSmallView, toggleSidebar } =
+  const { expandSidebar, setExpandSidebar, isOpenSmallView, setIsOpenSmallView, toggleSidebar } =
     useSidebarContext();
+  const sidebarRef = React.useRef<HTMLElement>(null);
   const navigate = useNavigate();
 
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
@@ -127,8 +129,11 @@ const Sidebar: React.FC<SidebarProps> = ({ className, style }) => {
       toast.error(`Error on deleting chat session`);
     }
   }
+
+  useOutsideClose({ ref: sidebarRef, callback: () => setIsOpenSmallView(false) });
   return (
     <aside
+      ref={sidebarRef}
       style={{ ...style }}
       className={cn(
         "max-sm:fixed max-sm:max-w-64",
@@ -190,7 +195,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className, style }) => {
                 {expandSidebar && <p>{name}</p>}
               </NavLink>
             ))}
-            
           </div>
         </section>
         {/* chat - section */}
