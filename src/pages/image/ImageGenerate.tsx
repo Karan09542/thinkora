@@ -58,20 +58,21 @@ const Tiles: React.FC<{
     <div className="flex items-start gap-1">
       <img
         onContextMenu={(e) => e.preventDefault()}
-        className="w-10 rounded-xl p-1 border border-gray-200"
+        className="w-10 rounded-xl p-1 border-3 border-gray-200"
         src={link}
       />{" "}
-      <p>{text}</p>
+      <p className="truncate">{text.substring(0, 100)}</p>
     </div>
     <button
       onClick={onDelete}
       className={cn(
-        "absolute press -right-1.5 -top-1.5 bg-gray-200 border-3 text-gray-800 border-white press  p-1 rounded-full",
+        "absolute press -right-1.5 -top-1.5 bg-gray-200 border-3 text-gray-800 border-white press  p-1 rounded-xl",
         active && "bg-gray-800 text-white",
       )}
     >
       <MdDelete />
     </button>
+
   </div>
 );
 
@@ -198,8 +199,8 @@ const ImageGenerate: React.FC = () => {
       const data = await res.json();
       setUrls(data.urls);
       setHistory((prev) => [
-        ...prev,
         { urls: data.urls, prompt: text, _id: data._id },
+        ...prev,
       ]);
     } catch (error) {
       console.log(error);
