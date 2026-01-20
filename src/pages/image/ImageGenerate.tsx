@@ -72,7 +72,6 @@ const Tiles: React.FC<{
     >
       <MdDelete />
     </button>
-
   </div>
 );
 
@@ -422,7 +421,7 @@ const ImageGenerate: React.FC = () => {
         <div
           style={{ scrollbarWidth: "none" }}
           className={cn(
-            "bg-white rounded-xl shadow-md *:px-4 w-full max-w-80 m-5 overflow-y-auto transition-all",
+            "bg-white rounded-xl shadow-md *:px-4 w-full max-w-80 m-5 overflow-y-auto transition-all app-scroll",
             isSmallView && "fixed h-[90vh] z-20",
             openRightPanel ? "right-0" : "-right-100",
           )}
@@ -453,6 +452,9 @@ const ImageGenerate: React.FC = () => {
               color="#38BDF8"
               className="mx-auto scale-75"
             />
+          )}
+          {!historyFetching && history.length === 0 && (
+            <p className="text-center">No History</p>
           )}
           {
             <div className="flex flex-col gap-2 h-full">

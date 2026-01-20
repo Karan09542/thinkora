@@ -148,8 +148,9 @@ const ImageHistory: React.FC = () => {
     <div
       ref={containerRef}
       className={cn(
-        "flex flex-col flex-wrap h-full gap-5 justify-center px-10 max-[480px]:px-2 pt-3 pb-6",
+        "flex flex-col flex-wrap gap-5 justify-center px-10 max-[480px]:px-2 pt-3 pb-6 h-screen",
         isSmallView && "pt-14",
+        Object.keys(history).length === 0 && "justify-normal",
       )}
     >
       <h1 className="text-3xl font-sans gradient-primary text-transparent bg-clip-text font-bold">
@@ -158,9 +159,7 @@ const ImageHistory: React.FC = () => {
       <hr className="border-2 border-white" />
       {Object.keys(history).length === 0 && (
         <div className="text-center">
-          <h1 className="text-3xl font-sans gradient-primary text-transparent bg-clip-text font-bold">
-            No History Found
-          </h1>
+          <h1 className="text-2xl">No History Found</h1>
         </div>
       )}
       {Object.keys(history).map((date) => (
@@ -181,7 +180,7 @@ const ImageHistory: React.FC = () => {
         </div>
       ))}
       {/* load more */}
-      {Object.keys(history).length && (
+      {Object.keys(history).length > 0 && (
         <button
           onClick={() => setPage((prev) => prev + 1)}
           className="mb-5 hover:scale-105 flex items-center gap-1 gradient-primary text-white mx-auto px-2 py-1 rounded-full text-xs press"
