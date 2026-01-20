@@ -148,9 +148,9 @@ const ImageHistory: React.FC = () => {
     <div
       ref={containerRef}
       className={cn(
-        "flex flex-col flex-wrap gap-5 justify-center px-10 max-[480px]:px-2 pt-3 pb-6 h-screen",
+        "flex flex-col flex-wrap gap-5 justify-center px-10 max-[480px]:px-2 pt-3 pb-6 h-full",
         isSmallView && "pt-14",
-        Object.keys(history).length === 0 && "justify-normal",
+        Object.keys(history).length === 0 && "justify-normal h-screen",
       )}
     >
       <h1 className="text-3xl font-sans gradient-primary text-transparent bg-clip-text font-bold">
