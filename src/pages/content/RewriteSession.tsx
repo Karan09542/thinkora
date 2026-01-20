@@ -22,6 +22,7 @@ import { useParams } from "react-router-dom";
 import { useSidebarContext } from "@/context/SidebarProvider";
 import { toast } from "react-toastify";
 import { isMobileDevice, markdownToText } from "@/util";
+import useThrottle from "@/hooks/useThrottle";
 
 type Content = {
   role: "user" | "ai";
@@ -46,10 +47,13 @@ const RewriteSession: React.FC = () => {
   const [contents, setContents] = useState<Content[]>([]);
   const [category, setCategory] = useState<CategoryType>("rewrite");
   const { user, setUser } = useAuthContext();
+  const [isLoading, setIsLoading] = useState(true);
+  const [direction, setDirection] = useState<"up" | "down">("down");
+  const previousScrollHeight = useRef(0);
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   const [isScrollBtnVisible, setIsScrollBtnVisible] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
-  const [page, _setPage] = useState(1);
+  const [page, setPage] = useState(1);
 
   function handleCopy(text: string) {
     navigator.clipboard.writeText(text);
@@ -97,6 +101,7 @@ const RewriteSession: React.FC = () => {
         ...prev,
         { role: "ai", text: content, _id: crypto.randomUUID() },
       ]);
+      setDirection("down");
     } catch (error) {
       console.log(`Error in generating content, error is ${error}`);
     } finally {
@@ -106,9 +111,11 @@ const RewriteSession: React.FC = () => {
 
   useEffect(() => {
     async function fetchChatSession() {
+      setIsLoading(true);
+      previousScrollHeight.current = contentRef.current?.scrollHeight || 0;
       try {
         const res = await apiFetch({
-          url: `/v1/content/chat-sessions/${chatSessionId}?page={page}&limit={5}`,
+          url: `/v1/content/chat-sessions/${chatSessionId}?page=${page}&limit=5`,
           options: {
             headers: {
               authorization: `Bearer ${user?.token}`,
@@ -124,7 +131,13 @@ const RewriteSession: React.FC = () => {
             category: string;
           }[];
         };
-        const formatContent = chatSession.flatMap((item) => [
+        if (
+          !chatSession ||
+          !Array.isArray(chatSession) ||
+          chatSession.length === 0
+        )
+          return;
+        const formatContent = chatSession.reverse().flatMap((item) => [
           {
             _id: crypto.randomUUID(),
             text: item.prompt,
@@ -133,14 +146,14 @@ const RewriteSession: React.FC = () => {
           },
           { _id: crypto.randomUUID(), text: item.content, role: "ai" as const },
         ]);
-
-        if (chatSession && Array.isArray(chatSession)) {
-          setContents((prev) =>
-            page === 1 ? formatContent : [...prev, ...formatContent],
-          );
-        }
+        setContents((prev) =>
+          page === 1 ? formatContent : [...formatContent, ...prev],
+        );
+        if (page > 1) setDirection("up");
       } catch (error) {
         console.log(`Error in fetching chat session`);
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchChatSession();
@@ -150,10 +163,23 @@ const RewriteSession: React.FC = () => {
   useEffect(() => {
     const content = contentRef.current;
     if (!content) return;
+    if (page > 1 && direction === "up") {
+      if (!contentRef.current) return;
+      const newScrollHeight = contentRef.current?.scrollHeight || 0;
+      const diff = newScrollHeight - previousScrollHeight.current;
+      contentRef.current.scrollTop = diff;
+      return;
+    }
     content.scrollTo({ top: content.scrollHeight, behavior: "smooth" });
   }, [contents]);
 
-  if (page === 1 && isGeneratingContent) {
+  const throttleScroll = useThrottle((el) => {
+    if (el.scrollTop === 0) {
+      setPage((prev) => prev + 1);
+    }
+  });
+
+  if (page === 1 && isLoading) {
     return (
       <div className="h-screen flex justify-center items-center">
         <FadeLoader color="#38BDF8" className="mx-auto" />
@@ -163,6 +189,11 @@ const RewriteSession: React.FC = () => {
   return (
     <div className="relative overflow-y-hidden">
       <div className="flex flex-col gap-4 justify-center max-w-4xl mx-auto w-full max-sm:px-2 px-10 h-screen">
+        <FadeLoader
+          color="#38BDF8"
+          className="mx-auto scale-75 my-8"
+          loading={page > 1 && isLoading}
+        />
         {contents.length > 0 && (
           <div
             onScroll={(e) => {
@@ -170,10 +201,13 @@ const RewriteSession: React.FC = () => {
               const isNotAtBottom =
                 el.scrollTop + el.clientHeight + 50 < el.scrollHeight;
               setIsScrollBtnVisible(isNotAtBottom);
+              if (el.scrollTop === 0) {
+                throttleScroll(el);
+              }
             }}
-            style={{ scrollbarWidth: "none", scrollSnapType: "y mandatory" }}
+            style={{ scrollMarginTop: "1.5rem", scrollSnapType: "y mandatory" }}
             className={cn(
-              "max-h-[70vh] min-h-[70vh] overflow-y-auto px-4 message-container flex flex-col gap-4 py-4",
+              "max-h-[70vh] min-h-[70vh] overflow-y-auto app-scroll px-4 message-container flex flex-col gap-4 py-4 transition-all duration-",
             )}
             ref={contentRef}
           >
