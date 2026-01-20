@@ -11,7 +11,7 @@ const Home: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center h-screen px-6  max-sm:mb-20">
       {/* Hero */}
-      <h1 className={cn("text-4xl md:text-5xl font-semibold text-gray-800 mb-4", isSmallView && "pt-30 text-center")}>
+      <h1 className={cn("text-4xl md:text-5xl font-semibold text-gray-800 mb-4", isSmallView && "pt-20 text-center")}>
         Generate Content with <span className="text-sky-500">Thinkora</span>
       </h1>
 

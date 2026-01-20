@@ -11,6 +11,9 @@
 } */
 
 @layer components {
+  .screen-height {
+    height: calc(var(--vh, 1vh) * 100);
+  }
   .btn {
     @apply bg-white text-black dark:bg-rose-500 dark:text-white px-2 py-2.5 rounded-xl transition-all active:scale-95 disabled:active:scale-100 cursor-pointer;
   }

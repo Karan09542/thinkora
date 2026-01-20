@@ -156,6 +156,13 @@ const ImageHistory: React.FC = () => {
         Image History
       </h1>
       <hr className="border-2 border-white" />
+      {Object.keys(history).length === 0 && (
+        <div className="text-center">
+          <h1 className="text-3xl font-sans gradient-primary text-transparent bg-clip-text font-bold">
+            No History Found
+          </h1>
+        </div>
+      )}
       {Object.keys(history).map((date) => (
         <div key={date}>
           <h1 className="mb-2 px-1 text-xl">

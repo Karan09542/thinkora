@@ -13,6 +13,7 @@ export default defineConfig(() => {
       //   "/v1": env.VITE_API_URL || "http://localhost:3000",
       // },
       // allowedHosts: ["collapse-courier-bytes-designs.trycloudflare.com"]
+      host: true,
     },
     resolve: {
       alias: {

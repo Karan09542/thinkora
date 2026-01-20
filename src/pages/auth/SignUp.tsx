@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import { UserFormSchema } from "../../util";
+import { baseURL, UserFormSchema } from "../../util";
 import TextInput from "@/components/inputs/TextInput";
 import type z from "zod";
 import { toast } from "react-toastify";
@@ -17,7 +17,6 @@ const SignUp: React.FC = () => {
     resolver: zodResolver(UserFormSchema),
   });
   const onSubmit = async (data: z.infer<typeof UserFormSchema>) => {
-    const baseURL = import.meta.env.VITE_API_URL;
     const res = await fetch(`${baseURL}/v1/auth/sign-up`, {
       method: "POST",
       headers: {

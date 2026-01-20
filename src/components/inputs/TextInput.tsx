@@ -1,6 +1,6 @@
 import React from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
-import { cn } from  "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 interface TextInputProps {
   register: UseFormRegisterReturn;
@@ -22,7 +22,7 @@ const TextInput: React.FC<TextInputProps> = ({
           {...register}
           className={cn(
             "w-full bg-white border-2 border-blue-100 p-2 rounded-xl placeholder:text-black/50 focus:border-transparent focus:ring-4 focus:ring-violet-500 focus:outline-none transition-all duration-300",
-            error && "ring-4 ring-red-500 focus:ring-red-500"
+            error && "ring-4 ring-red-500 focus:ring-red-500",
           )}
           placeholder={placeholder}
           type={type === "password" ? (show ? "text" : "password") : type}

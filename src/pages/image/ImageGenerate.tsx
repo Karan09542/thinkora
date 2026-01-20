@@ -24,6 +24,7 @@ import CloseBtn from "@/components/button/CloseBtn";
 import { RiBarChartHorizontalLine } from "react-icons/ri";
 import { FcDownload } from "react-icons/fc";
 import { downloadImage } from "@/util";
+import { FadeLoader } from "react-spinners";
 
 const Image_Resolution = [
   {
@@ -233,7 +234,8 @@ const ImageGenerate: React.FC = () => {
                 anchorName: `--image-${id + 1}`,
               }}
               className={cn(
-                "m-auto rounded-xl transition-all duration-300 ease-in-out h-[80vh]",
+                "m-auto  rounded-xl transition-all duration-300 ease-in-out h-[80vh]",
+                isSmallView && "w-[90vw] h-auto",
               )}
               src={url}
               onContextMenu={(e) => e.preventDefault()}
@@ -257,7 +259,7 @@ const ImageGenerate: React.FC = () => {
             position: isZoomed ? "fixed" : "relative",
             anchorName: `--image-${id}`,
           }}
-          className={"h-full object-contain"}
+          className={cn("object-contain h-full @max-[350px]:h-auto")}
           src={url}
           onContextMenu={(e) => e.preventDefault()}
           onClick={() => setIsZoomed(true)}
@@ -327,7 +329,7 @@ const ImageGenerate: React.FC = () => {
             <div
               style={{ scrollbarWidth: "none" }}
               className={cn(
-                "flex-1 bg-black/10 bg-linear-45 from-sky-100 to-pink-50 flex items-center [&>img]:rounded-xl px-3 gap-3 min-h-0 overflow-y-auto relative rounded-xl text-3xl text-gray-400 py-4 transition-all",
+                "flex-1 bg-black/10 bg-linear-45 from-sky-100 to-pink-50 flex items-center [&>img]:rounded-xl px-3 gap-3 min-h-0 overflow-y-auto relative rounded-xl text-3xl text-gray-400 py-4 transition-all @container",
                 urls.length <= 1 && "justify-center",
               )}
             >
@@ -443,44 +445,53 @@ const ImageGenerate: React.FC = () => {
               />
             )}
           </div>
-
-          <div className="flex flex-col gap-2 h-full">
-            <div className="space-y-3 mt-3 mb-auto">
-              {history.length > 0 &&
-                history.map((item, i) => (
-                  <Tiles
-                    key={item._id}
-                    text={item.prompt}
-                    link={item.urls[0]}
-                    active={activeIndex === i}
-                    onClick={() => {
-                      fetchingImage(item._id);
-                      if (activeIndex === i) {
-                        setActiveIndex(null);
-                      } else {
-                        setActiveIndex(i);
-                      }
-                      if (isSmallView) {
-                        setOpenRightPanel(false);
-                      }
-                    }}
-                    onDelete={() => handleDeleteImage(item._id)}
-                  />
-                ))}
-            </div>
-
-            {history.length > 0 && (
-              <div>
-                <button
-                  onClick={() => setPage((prev) => prev + 1)}
-                  className="mb-5 hover:scale-105 flex items-center gap-1 gradient-primary text-white mx-auto px-2 py-1 rounded-full text-xs press"
-                >
-                  {historyFetching && <CgSpinner className="animate-spin" />}{" "}
-                  load more
-                </button>
+          {page === 1 && (
+            <FadeLoader
+              loading={historyFetching}
+              radius={80}
+              color="#38BDF8"
+              className="mx-auto scale-75"
+            />
+          )}
+          {
+            <div className="flex flex-col gap-2 h-full">
+              <div className="space-y-3 mt-3 mb-auto">
+                {history.length > 0 &&
+                  history.map((item, i) => (
+                    <Tiles
+                      key={item._id}
+                      text={item.prompt}
+                      link={item.urls[0]}
+                      active={activeIndex === i}
+                      onClick={() => {
+                        fetchingImage(item._id);
+                        if (activeIndex === i) {
+                          setActiveIndex(null);
+                        } else {
+                          setActiveIndex(i);
+                        }
+                        if (isSmallView) {
+                          setOpenRightPanel(false);
+                        }
+                      }}
+                      onDelete={() => handleDeleteImage(item._id)}
+                    />
+                  ))}
               </div>
-            )}
-          </div>
+
+              {history.length > 0 && (
+                <div>
+                  <button
+                    onClick={() => setPage((prev) => prev + 1)}
+                    className="mb-5 hover:scale-105 flex items-center gap-1 gradient-primary text-white mx-auto px-2 py-1 rounded-full text-xs press"
+                  >
+                    {historyFetching && <CgSpinner className="animate-spin" />}{" "}
+                    load more
+                  </button>
+                </div>
+              )}
+            </div>
+          }
         </div>
       </section>
     </div>

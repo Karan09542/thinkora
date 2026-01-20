@@ -3,6 +3,7 @@ import Footer from "../footer/Footer";
 import Sidebar from "../sidebar/Sidebar";
 import { cn } from "@/lib/utils";
 import { RiBarChartHorizontalLine } from "react-icons/ri";
+import { useEffect } from "react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,30 +11,43 @@ interface LayoutProps {
 }
 const Layout: React.FC<LayoutProps> = ({ children, isFooter = true }) => {
   const { toggleSidebar, isSmallView } = useSidebarContext();
+  useEffect(() => {
+    function handle() {
+      document.documentElement.style.setProperty(
+        "--vh",
+        `${window.innerHeight * 0.01}`,
+      );
+    }
+    window.addEventListener("resize", handle);
+    handle();
+    return () => window.removeEventListener("resize", handle);
+  }, []);
   return (
-    <div className={cn("flex", isSmallView && "flex-col")}>
+    <div
+      className={cn(
+        "flex bg-linear-45 from-teal-50 to-pink-50",
+        isSmallView && "flex-col",
+      )}
+    >
       {isSmallView && (
         <>
-        <div
-          onClick={toggleSidebar}
-          className="backdrop-blur-2xl border-b-6 border-pink-300/30 px-2 py-5 h-10 w-full fixed z-10 flex items-center shadow-2xl shadow-pink-500/20"
-        >
-          <RiBarChartHorizontalLine
-            className="press"
-            size={24}
-          />
-        </div>
+          <div
+            onClick={toggleSidebar}
+            className="backdrop-blur-2xl border-b-6 border-pink-300/30 px-2 py-5 h-10 w-full fixed z-10 flex items-center shadow-2xl shadow-pink-500/20"
+          >
+            <RiBarChartHorizontalLine className="press" size={24} />
+          </div>
         </>
       )}
       <Sidebar
         className={cn(
-          "sticky top-0 max-h-screen min-h-screen border-white z-10 bg-linear-to-b from-sky-100 to-pink-50"
+          "sticky top-0 border-white z-10 bg-linear-to-b from-sky-100 to-pink-50",
+          !isSmallView && "max-h-screen min-h-screen",
+          isSmallView && "screen-height",
         )}
       />
       <div className={cn("flex-1")}>
-        <main className="bg-linear-45 from-teal-50 to-pink-50 w-full">
-          {children}
-        </main>
+        <main>{children}</main>
         {isFooter && <Footer className="relative bg-black text-white" />}
       </div>
     </div>
