@@ -10,7 +10,7 @@ import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import "katex/dist/katex.min.css";
 import { Textarea } from "@/components/ui/textarea";
-import { SyncLoader } from "react-spinners";
+import { FadeLoader, SyncLoader } from "react-spinners";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -153,6 +153,13 @@ const RewriteSession: React.FC = () => {
     content.scrollTo({ top: content.scrollHeight, behavior: "smooth" });
   }, [contents]);
 
+  if (page === 1 && isGeneratingContent) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <FadeLoader color="#38BDF8" className="mx-auto" />
+      </div>
+    );
+  }
   return (
     <div className="relative overflow-y-hidden">
       <div className="flex flex-col gap-4 justify-center max-w-4xl mx-auto w-full max-sm:px-2 px-10 h-screen">
