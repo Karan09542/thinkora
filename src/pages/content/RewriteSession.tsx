@@ -41,7 +41,11 @@ type CategoryType = (typeof Categories)[number];
 
 const RewriteSession: React.FC = () => {
   const params = useParams();
-  const { isSmallView } = useSidebarContext();
+  const {
+    isSmallView,
+    chatSessions: sidebarChatSessions,
+    setChatSessions: setSidebarChatSessions,
+  } = useSidebarContext();
   const chatSessionId = params.chatSessionId;
   const textInputRef = useRef<HTMLTextAreaElement>(null);
   const [contents, setContents] = useState<Content[]>([]);
@@ -101,6 +105,20 @@ const RewriteSession: React.FC = () => {
         ...prev,
         { role: "ai", text: content, _id: crypto.randomUUID() },
       ]);
+
+      // updating the session on top of sidebar chat sessions that has changed now
+      if (chatSessionId !== sidebarChatSessions[0]._id) {
+        const idx = sidebarChatSessions.findIndex(
+          (item) => item._id === chatSessionId,
+        );
+        const updatedSidebarChatSessions = [
+          sidebarChatSessions[idx],
+          ...sidebarChatSessions.slice(0, idx),
+          ...sidebarChatSessions.slice(idx + 1),
+        ];
+        setSidebarChatSessions(updatedSidebarChatSessions);
+      }
+
       setDirection("down");
     } catch (error) {
       console.log(`Error in generating content, error is ${error}`);
@@ -108,6 +126,10 @@ const RewriteSession: React.FC = () => {
       setIsGeneratingContent(false);
     }
   }
+
+  useEffect(() => {
+    setSidebarChatSessions;
+  }, [sidebarChatSessions]);
 
   useEffect(() => {
     async function fetchChatSession() {
@@ -158,6 +180,26 @@ const RewriteSession: React.FC = () => {
     }
     fetchChatSession();
   }, [chatSessionId, page]);
+
+  // updating sidebar chat sessions on load
+  useEffect(() => {
+    if (sidebarChatSessions.length && page === 1 && contents.length) {
+      if (
+        sidebarChatSessions.find((item) => item._id === chatSessionId) ===
+        undefined
+      ) {
+        const title = contents.at(-1)?.text.slice(0, 50) || "Untitled";
+
+        setSidebarChatSessions((prev) => [
+          {
+            _id: chatSessionId as string,
+            title,
+          },
+          ...prev,
+        ]);
+      }
+    }
+  }, [sidebarChatSessions, page, contents]);
 
   // scroll into view when contents changes
   useEffect(() => {

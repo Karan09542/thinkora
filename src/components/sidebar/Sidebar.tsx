@@ -27,10 +27,6 @@ interface SidebarProps {
   style?: React.CSSProperties;
 }
 
-type ChatSession = {
-  _id: string;
-  title: string;
-};
 const isRewrite = (pathname: string) =>
   /^\/(rewrite|rewrite\/w+)/.test(pathname);
 
@@ -53,18 +49,24 @@ const NavItems = [
 ];
 const Sidebar: React.FC<SidebarProps> = ({ className, style }) => {
   const { user, setUser, logout } = useAuthContext();
-  const { expandSidebar, setExpandSidebar, isOpenSmallView, setIsOpenSmallView, toggleSidebar } =
-    useSidebarContext();
+  const {
+    expandSidebar,
+    setExpandSidebar,
+    isOpenSmallView,
+    setIsOpenSmallView,
+    toggleSidebar,
+    chatSessions,
+    setChatSessions,
+  } = useSidebarContext();
   const sidebarRef = React.useRef<HTMLElement>(null);
   const navigate = useNavigate();
 
-  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
-  const [isLoadingChatSession, setIsLoadingChatSession] = useState(false);
+  const [isLoadingChatSessions, setIsLoadingChatSessions] = useState(false);
   const [page, setPage] = useState(1);
   const { pathname } = useLocation();
 
-  async function fetchChatSession() {
-    setIsLoadingChatSession(true);
+  async function fetchChatSessions() {
+    setIsLoadingChatSessions(true);
     try {
       const res = await apiFetch({
         url: `/v1/content/chat-sessions/?page=${page}&limit=10`,
@@ -85,23 +87,23 @@ const Sidebar: React.FC<SidebarProps> = ({ className, style }) => {
     } catch (error) {
       console.log(`Error in fetching chat session, error is ${error}`);
     } finally {
-      setIsLoadingChatSession(false);
+      setIsLoadingChatSessions(false);
     }
   }
   useEffect(() => {
     if (isRewrite(pathname) && !chatSessions.length) {
-      fetchChatSession();
+      fetchChatSessions();
     }
   }, [pathname]);
 
   useEffect(() => {
     if (page > 1) {
-      fetchChatSession();
+      fetchChatSessions();
     }
   }, [page]);
 
   const throttleScroll = useThrottle((el) => {
-    if (el.clientHeight + el.clientTop >= el.scrollHeight - 50) {
+    if (el.clientHeight + el.scrollTop >= el.scrollHeight - 50) {
       setPage((prev) => prev + 1);
     }
   });
@@ -130,7 +132,10 @@ const Sidebar: React.FC<SidebarProps> = ({ className, style }) => {
     }
   }
 
-  useOutsideClose({ ref: sidebarRef, callback: () => setIsOpenSmallView(false) });
+  useOutsideClose({
+    ref: sidebarRef,
+    callback: () => setIsOpenSmallView(false),
+  });
   return (
     <aside
       ref={sidebarRef}
@@ -252,7 +257,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, style }) => {
                 ))}
 
                 <FadeLoader
-                  loading={isLoadingChatSession}
+                  loading={isLoadingChatSessions}
                   radius={80}
                   color="#38BDF8"
                   className="mx-auto scale-75"

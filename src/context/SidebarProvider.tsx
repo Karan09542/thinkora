@@ -10,6 +10,12 @@ type SidebarContextType = {
   isOpenSmallView: boolean;
   setIsOpenSmallView: React.Dispatch<React.SetStateAction<boolean>>;
   toggleSidebar: () => void;
+  chatSessions: ChatSession[];
+  setChatSessions: React.Dispatch<React.SetStateAction<ChatSession[]>>;
+};
+type ChatSession = {
+  _id: string;
+  title: string;
 };
 const SidebarContext = createContext<SidebarContextType | null>(null);
 export const useSidebarContext = () => {
@@ -23,6 +29,7 @@ const SidebarProvider: React.FC<SidebarProps> = ({ children }) => {
   const [expandSidebar, setExpandSidebar] = useState(false);
   const [isSmallView, setIsSmallView] = useState(false);
   const [isOpenSmallView, setIsOpenSmallView] = useState(false);
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
 
   const toggleSidebar = () => {
     setIsOpenSmallView((prev) => !prev);
@@ -51,6 +58,8 @@ const SidebarProvider: React.FC<SidebarProps> = ({ children }) => {
         isOpenSmallView,
         setIsOpenSmallView,
         toggleSidebar,
+        chatSessions,
+        setChatSessions,
       }}
     >
       {children}
